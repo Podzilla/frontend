@@ -1,10 +1,16 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'warehouse' | 'courier' | 'customer';
+  role: "admin" | "warehouse" | "courier" | "customer";
+  password: string;
+  token: string;
+  bio: string;
+  location: string;
+  avatarUrl: string;
+  joinedDate: string;
 }
 
 interface AuthContextType {
@@ -12,6 +18,10 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
+  error: string | null;
+  clearError: () => void;
+  register: (name: string, email: string, password: string) => Promise<void>;
+  updateUser: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,41 +29,43 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // Mock user data for demonstration
 const MOCK_USERS = [
   {
-    id: '1',
-    name: 'Admin User',
-    email: 'admin@podzilla.com',
-    password: 'admin123',
-    role: 'admin',
+    id: "1",
+    name: "Admin User",
+    email: "admin@podzilla.com",
+    password: "admin123",
+    role: "admin",
   },
   {
-    id: '2',
-    name: 'Warehouse Manager',
-    email: 'warehouse@podzilla.com',
-    password: 'warehouse123',
-    role: 'warehouse',
+    id: "2",
+    name: "Warehouse Manager",
+    email: "warehouse@podzilla.com",
+    password: "warehouse123",
+    role: "warehouse",
   },
   {
-    id: '3',
-    name: 'Courier',
-    email: 'courier@podzilla.com',
-    password: 'courier123',
-    role: 'courier',
+    id: "3",
+    name: "Courier",
+    email: "courier@podzilla.com",
+    password: "courier123",
+    role: "courier",
   },
   {
-    id: '4',
-    name: 'Customer',
-    email: 'customer@example.com',
-    password: 'customer123',
-    role: 'customer',
+    id: "4",
+    name: "Customer",
+    email: "customer@example.com",
+    password: "customer123",
+    role: "customer",
   },
 ];
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
-  
+
   useEffect(() => {
     // Check for stored user on initial load
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
@@ -66,15 +78,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const foundUser = MOCK_USERS.find(
           (u) => u.email === email && u.password === password
         );
-        
+
         if (foundUser) {
           // Remove the password before storing
           const { password, ...userWithoutPassword } = foundUser;
           setUser(userWithoutPassword as User);
-          localStorage.setItem('user', JSON.stringify(userWithoutPassword));
+          localStorage.setItem("user", JSON.stringify(userWithoutPassword));
           resolve();
         } else {
-          reject(new Error('Invalid email or password'));
+          reject(new Error("Invalid email or password"));
         }
       }, 500);
     });
@@ -82,11 +94,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('user');
+    localStorage.removeItem("user");
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        isAuthenticated: !!user,
+        error: null,
+        clearError: () => {},
+        register: () => Promise.resolve(),
+        updateUser: () => {},
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -95,7 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
