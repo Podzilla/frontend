@@ -1,4 +1,3 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import AppLayout from './layouts/AppLayout';
@@ -15,7 +14,7 @@ import InventoryPage from './pages/warehouse/InventoryPage';
 import CourierDashboard from './pages/courier/CourierDashboard';
 import DeliveryTracking from './pages/courier/DeliveryTracking';
 import AnalyticsDashboard from './pages/analytics/AnalyticsDashboard';
-import LoginPage from './pages/auth/LoginPage';
+import LoginPage from './pages/auth/Login';
 
 function App() {
   return (
